@@ -2,6 +2,7 @@ import os
 import requests
 import boto3
 from langchain_aws import BedrockLLM
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema.runnable import RunnableSequence
 
@@ -25,6 +26,23 @@ def get_weather(city_name):
     else:
         return f"Could not fetch weather data for {city_name}. Please check the city name. (Data provided by OpenWeatherMap API)"
 
+
+def is_valid_city(location: str) -> bool:
+    try:
+        api_key = os.getenv("WEATHER_API_KEY")
+        response = requests.get(
+            "http://api.openweathermap.org/data/2.5/weather",
+            params={
+                "q": location,
+                "appid": api_key
+            },
+            timeout=5
+        )
+        data = response.json()
+        return data.get("cod") == 200
+    except Exception:
+        return False
+
 def process_query(user_input):
     """Process the user input to extract city name (and country if provided) and fetch weather data."""
     bedrock_client = boto3.client(
@@ -41,8 +59,17 @@ def process_query(user_input):
     )
 
     prompt = PromptTemplate(
-        input_variables=["user_input"],
-        template="You are an AI assistant. Extract only the city name and country (if provided) from the following input: {user_input}. Return them in the format 'City,Country' or just 'City' if no country is provided."
+    input_variables=["user_input"],
+    template="""
+        You are an AI assistant. Your task is based on the type of the input:
+
+        1. If the input is a **weather-related question** (contains keywords like "weather", "temperature", "forecast", "climate", etc.), **extract and return only the city and country (if mentioned)** in the format:
+        - "City,Country" (if country is included)
+        - "City" (if country is not included)
+
+        2. If the input is **not weather-related**, provide a answer to the question based on your general knowledge.
+        Input: {user_input}
+        """
     )
 
     ai_agent = RunnableSequence(
@@ -50,11 +77,8 @@ def process_query(user_input):
     )
 
     ai_response = ai_agent.invoke({"user_input": user_input})
-    location = ai_response.strip()
-
-    if location.lower() in user_input.lower():
-        city_name = location.split(',')[0].strip()
+    print(f"AI Response: {ai_response}")
+    if is_valid_city(ai_response.strip()):
+        return get_weather(ai_response.strip())
     else:
-        raise ValueError("Failed to extract a valid city name from the input.")
-
-    return get_weather(location)
+        return ai_response
