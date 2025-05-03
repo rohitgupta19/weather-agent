@@ -7,14 +7,16 @@ from langchain.schema.runnable import RunnableSequence
 
 def get_weather(city_name):
     """Fetch weather data for a given city using the Weather API."""
-    api_key = os.environ.get("WEATHER_API_KEY")
+    api_key = os.getenv("WEATHER_API_KEY")
     base_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {
         "q": city_name,
         "appid": api_key,
         "units": "metric"
     }
+    print(f"params : {params}")
     response = requests.get(base_url, params=params)
+    print(f"response from the API : {response}")
     if response.status_code == 200:
         data = response.json()
         temperature = f"{data['main']['temp']:.2f}°C"
