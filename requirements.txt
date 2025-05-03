@@ -1,0 +1,10 @@
+langchain==0.3.24
+google-auth-oauthlib==1.2.2
+google-auth-httplib2==0.2.0
+google-api-python-client==2.162.0
+python-dotenv==1.0.1
+boto3==1.38.6
+langchain-community==0.3.23
+langchain-aws==0.2.22
+requests==2.32.3
+pydantic==2.11.4
