@@ -2,7 +2,6 @@ import os
 import requests
 import boto3
 from langchain_aws import BedrockLLM
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema.runnable import RunnableSequence
 
