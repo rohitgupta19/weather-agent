@@ -58,15 +58,21 @@ def process_query(user_input):
     )
 
     prompt = PromptTemplate(
-    input_variables=["user_input"],
-    template="""
+        input_variables=["user_input"],
+        template="""
         You are an AI assistant. Your task is based on the type of the input:
 
         1. If the input is a **weather-related question** (contains keywords like "weather", "temperature", "forecast", "climate", etc.), **extract and return only the city and country (if mentioned)** in the format:
         - "City,Country" (if country is included)
         - "City" (if country is not included)
 
-        2. If the input is **not weather-related**, provide a answer to the question based on your general knowledge.
+        2. If the input is about **distance between cities**, provide:
+        - The approximate road distance in kilometers
+        - The typical driving time
+        - A brief note about the main route
+
+        3. If the input is any other type of question, provide a clear, accurate and direct answer based on your general knowledge.
+
         Input: {user_input}
         """
     )
